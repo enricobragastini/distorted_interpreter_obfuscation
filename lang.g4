@@ -1,20 +1,22 @@
 grammar lang;
 
+// Parser rules
+
 prog: LBRACE com* RBRACE EOF;
 
 com:
 	ID ASSIGN exp SEMICOLON								        # Assignment
 	| SKIP_CMD SEMICOLON									    # Skip
-//	| bExp SEMICOLON										    # Boolean
 	| LSQUARE com* NDETCH com* RSQUARE SEMICOLON			    # NondeterministicChoice
 	| WHILE LPAREN bExp RPAREN LBRACE com* RBRACE SEMICOLON	    # KleeneStar;
 
 exp: aExp | bExp;
 
 aExp:
-	aExp '+' aExp			# Addition
+	aExp '*' aExp			# Multiplication
+	| aExp '/' aExp			# Division
+	| aExp '+' aExp			# Addition
 	| aExp '-' aExp			# Subtraction
-	| aExp '*' aExp			# Multiplication
 	| LPAREN aExp RPAREN	# AParenthesis
 	| INT					# Integer
 	| ID					# ArithmeticVariable;
@@ -35,6 +37,9 @@ bExp_tail:
 	| AND exp bExp_tail
 	|
 	;
+
+
+// Lexer rules
 
 SKIP_CMD: 'skip';
 LBRACE: '{';

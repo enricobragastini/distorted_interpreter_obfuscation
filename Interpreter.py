@@ -20,16 +20,12 @@ class Interpreter(langVisitor):
     def visitSkip(self, ctx: langParser.SkipContext):
         pass
 
-    # def visitBoolean(self, ctx: langParser.BooleanContext):
-    #     return ctx.visit(ctx.bExp())
-
     def visitNondeterministicChoice(self, ctx: langParser.NondeterministicChoiceContext):
         import random
         return self.visit(ctx.com(random.choice([0, 1])))
 
     def visitKleeneStar(self, ctx: langParser.KleeneStarContext):
         cond = self.visit(ctx.bExp())
-        print(cond)
         while cond:
             for com in ctx.com():
                 self.visit(com)
@@ -43,6 +39,9 @@ class Interpreter(langVisitor):
 
     def visitMultiplication(self, ctx: langParser.MultiplicationContext):
         return self.visit(ctx.aExp(0)) * self.visit(ctx.aExp(1))
+
+    def visitDivision(self, ctx: langParser.DivisionContext):
+        return self.visit(ctx.aExp(0)) / self.visit(ctx.aExp(1))
 
     def visitAParenthesis(self, ctx: langParser.AParenthesisContext):
         return self.visit(ctx.aExp())

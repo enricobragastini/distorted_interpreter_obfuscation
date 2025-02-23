@@ -44,13 +44,13 @@ class langVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by langParser#Addition.
-    def visitAddition(self, ctx:langParser.AdditionContext):
+    # Visit a parse tree produced by langParser#Multiplication.
+    def visitMultiplication(self, ctx:langParser.MultiplicationContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by langParser#Multiplication.
-    def visitMultiplication(self, ctx:langParser.MultiplicationContext):
+    # Visit a parse tree produced by langParser#Addition.
+    def visitAddition(self, ctx:langParser.AdditionContext):
         return self.visitChildren(ctx)
 
 
@@ -66,6 +66,11 @@ class langVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by langParser#AParenthesis.
     def visitAParenthesis(self, ctx:langParser.AParenthesisContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by langParser#Division.
+    def visitDivision(self, ctx:langParser.DivisionContext):
         return self.visitChildren(ctx)
 
 

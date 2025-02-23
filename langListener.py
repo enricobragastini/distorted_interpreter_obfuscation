@@ -71,21 +71,21 @@ class langListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by langParser#Addition.
-    def enterAddition(self, ctx:langParser.AdditionContext):
-        pass
-
-    # Exit a parse tree produced by langParser#Addition.
-    def exitAddition(self, ctx:langParser.AdditionContext):
-        pass
-
-
     # Enter a parse tree produced by langParser#Multiplication.
     def enterMultiplication(self, ctx:langParser.MultiplicationContext):
         pass
 
     # Exit a parse tree produced by langParser#Multiplication.
     def exitMultiplication(self, ctx:langParser.MultiplicationContext):
+        pass
+
+
+    # Enter a parse tree produced by langParser#Addition.
+    def enterAddition(self, ctx:langParser.AdditionContext):
+        pass
+
+    # Exit a parse tree produced by langParser#Addition.
+    def exitAddition(self, ctx:langParser.AdditionContext):
         pass
 
 
@@ -113,6 +113,15 @@ class langListener(ParseTreeListener):
 
     # Exit a parse tree produced by langParser#AParenthesis.
     def exitAParenthesis(self, ctx:langParser.AParenthesisContext):
+        pass
+
+
+    # Enter a parse tree produced by langParser#Division.
+    def enterDivision(self, ctx:langParser.DivisionContext):
+        pass
+
+    # Exit a parse tree produced by langParser#Division.
+    def exitDivision(self, ctx:langParser.DivisionContext):
         pass
 
 

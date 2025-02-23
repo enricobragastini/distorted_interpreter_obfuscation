@@ -3,11 +3,11 @@ from langLexer import langLexer
 from langParser import langParser
 from langVisitor import langVisitor
 from Interpreter import Interpreter
-from Distorter import Distorter
+from ParityDistorter import ParityDistorter
 
 
-def main_interpreter():
-    input_stream = FileStream("test.txt")
+def interpreter_file(file_name="test.txt"):
+    input_stream = FileStream(file_name)
     lexer = langLexer(input_stream)
     token_stream = CommonTokenStream(lexer)
     parser = langParser(token_stream)
@@ -19,16 +19,36 @@ def main_interpreter():
     print("Memoria:", interpreter.memory)
 
 
-def main_distorter():
-    input_stream = FileStream("test.txt")
+def interpreter_string(code):
+    input_stream = InputStream(code)
     lexer = langLexer(input_stream)
     token_stream = CommonTokenStream(lexer)
     parser = langParser(token_stream)
     tree = parser.prog()
 
-    distorter = Distorter()
-    print(distorter.visit(tree))
+    interpreter = Interpreter()
+    interpreter.visit(tree)
+
+    print("\nMemoria:", interpreter.memory)
+
+
+def main_distorter(code):
+    input_stream = InputStream(code)
+    lexer = langLexer(input_stream)
+    token_stream = CommonTokenStream(lexer)
+    parser = langParser(token_stream)
+    tree = parser.prog()
+
+    distorter = ParityDistorter()
+    return distorter.visit(tree)
 
 
 if __name__ == "__main__":
-    main_distorter()
+    with open("test.txt", "r") as file:
+        code = file.read()
+        print("Original code\n", code)
+
+        distorted_code = main_distorter(code)
+        print("\nObfuscated code\n", distorted_code)
+
+        interpreter_string(distorted_code)
