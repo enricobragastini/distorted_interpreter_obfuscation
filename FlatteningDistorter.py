@@ -51,11 +51,10 @@ class FlatteningDistorter(langVisitor):
         }]
         branches.extend(self.visit(ctx.elseTail()))
 
-        bExps = [b for b in branches if b["bExp"] is not None]
+        start_pc = self.pc                      # start: current pc
+        exit_pc = self.pc + len(branches)       # exit node pc
 
-        start_pc = self.pc
-        exit_pc = self.pc + len(bExps) + 1
-        self.pc = exit_pc + 1
+        self.pc = exit_pc + 1                   # body program counter
 
         body = ""
         branches_pc = []
@@ -66,7 +65,7 @@ class FlatteningDistorter(langVisitor):
                 pc = exit_pc if j == (len(coms) - 1) else None
                 body += self.__obf_com(c, exit_pc=pc)
 
-        self.pc = start_pc
+        self.pc = start_pc                      # header program counter
         header = ""
         for i in range(len(branches_pc)):
             if not isinstance(branches[i]["ctx"], langParser.IfElseTailContext):
@@ -87,14 +86,14 @@ class FlatteningDistorter(langVisitor):
                 """
             self.pc += 1
 
-        self.pc = branches_pc[-1] + 1
+        self.pc = branches_pc[-1] + 1       # last branch pc + 1
 
         exit_node = f"""
         if(pc = {exit_pc}) {{
             pc := {self.pc};
         }};
         """
-        return exit_node + header + body
+        return header + exit_node + body
 
     def visitIfElseTail(self, ctx: langParser.IfElseTailContext):
         return [{
