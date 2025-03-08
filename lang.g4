@@ -5,10 +5,15 @@ grammar lang;
 prog: LBRACE com* RBRACE EOF;
 
 com:
-	ID ASSIGN exp SEMICOLON								        # Assignment
-	| SKIP_CMD SEMICOLON									    # Skip
-	| LSQUARE com* NDETCH com* RSQUARE SEMICOLON			    # NondeterministicChoice
-	| WHILE LPAREN bExp RPAREN LBRACE com* RBRACE SEMICOLON	    # KleeneStar;
+	ID ASSIGN exp SEMICOLON								                    # Assignment
+	| SKIP_CMD SEMICOLON									                # Skip
+	| IF LPAREN bExp RPAREN LBRACE com* RBRACE elseTail SEMICOLON		    # If
+	| WHILE LPAREN bExp RPAREN LBRACE com* RBRACE SEMICOLON	                # WhileLoop;
+
+elseTail:
+    ELSE LBRACE com* RBRACE                                         # IfElseTail
+    | ELSE IF LPAREN bExp RPAREN LBRACE com* RBRACE elseTail        # IfElseIfTail
+    |                                                               # IfElseTailEmpty;
 
 exp: aExp | bExp;
 
@@ -22,7 +27,6 @@ aExp:
 	| ID					# ArithmeticVariable;
 
 bExp:
-	NOT bExp bExp_tail
 	| ID bExp_tail
 	| TRUE bExp_tail
 	| FALSE bExp_tail
@@ -32,6 +36,7 @@ bExp:
 
 bExp_tail:
 	EQ exp bExp_tail
+	| NEQ exp bExp_tail
 	| GT exp bExp_tail
 	| LT exp bExp_tail
 	| AND exp bExp_tail
@@ -50,14 +55,16 @@ LSQUARE: '[';
 RSQUARE: ']';
 NDETCH: '||';
 WHILE: 'while';
+IF: 'if';
+ELSE: 'else';
 SEMICOLON: ';';
 ASSIGN: ':=';
 TRUE: 'true';
 FALSE: 'false';
-NOT: 'not';
 AND: 'and';
 OR: 'or';
 EQ: '=';
+NEQ: '!=';
 GT: '>';
 LT: '<';
 GE: '>=';

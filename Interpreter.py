@@ -20,11 +20,30 @@ class Interpreter(langVisitor):
     def visitSkip(self, ctx: langParser.SkipContext):
         pass
 
-    def visitNondeterministicChoice(self, ctx: langParser.NondeterministicChoiceContext):
-        import random
-        return self.visit(ctx.com(random.choice([0, 1])))
+    def visitIf(self, ctx: langParser.IfContext):
+        cond = self.visit(ctx.bExp())
+        if cond:
+            for com in ctx.com():
+                self.visit(com)
+        else:
+            self.visit(ctx.elseTail())
 
-    def visitKleeneStar(self, ctx: langParser.KleeneStarContext):
+    def visitIfElseTail(self, ctx: langParser.IfElseTailContext):
+        for com in ctx.com():
+            self.visit(com)
+
+    def visitIfElseIfTail(self, ctx: langParser.IfElseIfTailContext):
+        cond = self.visit(ctx.bExp())
+        if cond:
+            for com in ctx.com():
+                self.visit(com)
+        else:
+            self.visit(ctx.elseTail())
+
+    def visitIfElseTailEmpty(self, ctx: langParser.IfElseTailEmptyContext):
+        pass
+
+    def visitWhileLoop(self, ctx: langParser.WhileLoopContext):
         cond = self.visit(ctx.bExp())
         while cond:
             for com in ctx.com():
@@ -50,7 +69,10 @@ class Interpreter(langVisitor):
         return int(ctx.INT().getText())
 
     def visitArithmeticVariable(self, ctx: langParser.ArithmeticVariableContext):
-        return self.memory[ctx.ID().getText()]
+        if ctx.ID().getText() not in self.memory:
+            raise Exception("Variable not found: " + ctx.ID().getText())
+
+        return int(self.memory[ctx.ID().getText()])
 
     def visitBExp(self, ctx: langParser.BExpContext):
         left = self.visit(ctx.getChild(0))
@@ -65,29 +87,39 @@ class Interpreter(langVisitor):
         operator = ctx.getChild(0).getText()
         right = self.visit(ctx.getChild(1))
 
-        if operator == "and":
-            result = left and right
-        elif operator == "=":
-            result = left == right
-        elif operator == ">":
-            result = left > right
-        elif operator == "<":
-            result = left < right
-        else:
-            raise Exception("Unknown operator: " + operator)
+        try:
+            if operator == "and":
+                result = (left and right)
+            elif operator == "=":
+                result = (left == right)
+            elif operator == "!=":
+                result = (left != right)
+            elif operator == ">":
+                result = (left > right)
+            elif operator == "<":
+                result = (left < right)
+            else:
+                raise Exception("Unknown operator: " + operator)
+        except TypeError:
+            raise Exception(
+                str(self.memory) + "\nInvalid operation: " + str(left) + operator + str(right) + " at " + ctx.getText())
 
         return self._evaluateBExp_tail(ctx=ctx.bExp_tail(), left=result)
 
     def visitBExp_tail(self, ctx):
-        return self.visitChildren(ctx)
+        return None  # behavior is handled in _evaluateBExp_tail
 
     def visitTerminal(self, node):
         if node.getText() == "true":
             return True
         elif node.getText() == "false":
             return False
+        elif node.getText() == "not":
+            return
         elif node.getText().isdigit():
             return int(node.getText())
         else:
+            if node.getText() == "c":
+                print(self.memory[node.getText()])
             # ID
             return self.memory[node.getText()]

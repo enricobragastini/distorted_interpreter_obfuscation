@@ -35,21 +35,48 @@ class langListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by langParser#NondeterministicChoice.
-    def enterNondeterministicChoice(self, ctx:langParser.NondeterministicChoiceContext):
+    # Enter a parse tree produced by langParser#If.
+    def enterIf(self, ctx:langParser.IfContext):
         pass
 
-    # Exit a parse tree produced by langParser#NondeterministicChoice.
-    def exitNondeterministicChoice(self, ctx:langParser.NondeterministicChoiceContext):
+    # Exit a parse tree produced by langParser#If.
+    def exitIf(self, ctx:langParser.IfContext):
         pass
 
 
-    # Enter a parse tree produced by langParser#KleeneStar.
-    def enterKleeneStar(self, ctx:langParser.KleeneStarContext):
+    # Enter a parse tree produced by langParser#WhileLoop.
+    def enterWhileLoop(self, ctx:langParser.WhileLoopContext):
         pass
 
-    # Exit a parse tree produced by langParser#KleeneStar.
-    def exitKleeneStar(self, ctx:langParser.KleeneStarContext):
+    # Exit a parse tree produced by langParser#WhileLoop.
+    def exitWhileLoop(self, ctx:langParser.WhileLoopContext):
+        pass
+
+
+    # Enter a parse tree produced by langParser#IfElseTail.
+    def enterIfElseTail(self, ctx:langParser.IfElseTailContext):
+        pass
+
+    # Exit a parse tree produced by langParser#IfElseTail.
+    def exitIfElseTail(self, ctx:langParser.IfElseTailContext):
+        pass
+
+
+    # Enter a parse tree produced by langParser#IfElseIfTail.
+    def enterIfElseIfTail(self, ctx:langParser.IfElseIfTailContext):
+        pass
+
+    # Exit a parse tree produced by langParser#IfElseIfTail.
+    def exitIfElseIfTail(self, ctx:langParser.IfElseIfTailContext):
+        pass
+
+
+    # Enter a parse tree produced by langParser#IfElseTailEmpty.
+    def enterIfElseTailEmpty(self, ctx:langParser.IfElseTailEmptyContext):
+        pass
+
+    # Exit a parse tree produced by langParser#IfElseTailEmpty.
+    def exitIfElseTailEmpty(self, ctx:langParser.IfElseTailEmptyContext):
         pass
 
 

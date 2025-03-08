@@ -24,13 +24,28 @@ class langVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by langParser#NondeterministicChoice.
-    def visitNondeterministicChoice(self, ctx:langParser.NondeterministicChoiceContext):
+    # Visit a parse tree produced by langParser#If.
+    def visitIf(self, ctx:langParser.IfContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by langParser#KleeneStar.
-    def visitKleeneStar(self, ctx:langParser.KleeneStarContext):
+    # Visit a parse tree produced by langParser#WhileLoop.
+    def visitWhileLoop(self, ctx:langParser.WhileLoopContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by langParser#IfElseTail.
+    def visitIfElseTail(self, ctx:langParser.IfElseTailContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by langParser#IfElseIfTail.
+    def visitIfElseIfTail(self, ctx:langParser.IfElseIfTailContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by langParser#IfElseTailEmpty.
+    def visitIfElseTailEmpty(self, ctx:langParser.IfElseTailEmptyContext):
         return self.visitChildren(ctx)
 
 

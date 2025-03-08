@@ -3,7 +3,8 @@ from langLexer import langLexer
 from langParser import langParser
 from langVisitor import langVisitor
 from Interpreter import Interpreter
-from ParityDistorter import ParityDistorter
+# from ParityDistorter import ParityDistorter
+from FlatteningDistorter import FlatteningDistorter
 
 
 def interpreter_file(file_name="test.txt"):
@@ -39,7 +40,7 @@ def main_distorter(code):
     parser = langParser(token_stream)
     tree = parser.prog()
 
-    distorter = ParityDistorter()
+    distorter = FlatteningDistorter()
     return distorter.visit(tree)
 
 
@@ -48,7 +49,10 @@ if __name__ == "__main__":
         code = file.read()
         print("Original code\n", code)
 
-        distorted_code = main_distorter(code)
-        print("\nObfuscated code\n", distorted_code)
+        code = main_distorter(code)
+        print("\nObfuscated code\n", code)
 
-        interpreter_string(distorted_code)
+        with open("test1.txt", "w") as file:
+            file.write(code)
+
+        interpreter_string(code)
