@@ -8,6 +8,10 @@ This project implements two code obfuscation techniques, inspired by the paper *
 
 Both techniques are implemented using **Python** and **ANTLR4**.
 
+## 📚 Slides
+
+The slides for this project can be found [here](https://github.com/enricobragastini/distorted_interpreter_obfuscation/blob/main/docs/presentation.pdf).
+
 ---
 
 ## 🚀 **Setup Instructions**
