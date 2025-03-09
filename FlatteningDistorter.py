@@ -20,6 +20,28 @@ class FlatteningDistorter(langVisitor):
             return result
         elif isinstance(ctx, langParser.SkipContext):
             return "skip; "
+        elif isinstance(ctx, langParser.WhileLoopContext):
+            starting_pc = self.pc
+            self.pc = starting_pc + 1
+            body = ""
+            for com in ctx.com():
+                body += self.visit(com)
+            header = f"""
+                    if(pc = {starting_pc}) {{
+                        if ({ctx.bExp().getText()}) {{
+                            pc := {starting_pc + 1};
+                        }} else {{
+                            pc := {self.pc + 1 if exit_pc is None else exit_pc};
+                        }};
+                    }};
+                    """
+            result = header + body
+            result += f"""
+                    if (pc = {self.pc}) {{
+                        pc := {starting_pc};                
+                    }};\n"""
+            self.pc = self.pc + 1
+            return result
         return ""
 
     def __obf_var(self, varName: str):
@@ -65,6 +87,8 @@ class FlatteningDistorter(langVisitor):
                 pc = exit_pc if j == (len(coms) - 1) else None
                 body += self.__obf_com(c, exit_pc=pc)
 
+        last_pc = self.pc
+
         self.pc = start_pc                      # header program counter
         header = ""
         for i in range(len(branches_pc)):
@@ -86,7 +110,7 @@ class FlatteningDistorter(langVisitor):
                 """
             self.pc += 1
 
-        self.pc = branches_pc[-1] + 1       # last branch pc + 1
+        self.pc = last_pc
 
         exit_node = f"""
         if(pc = {exit_pc}) {{
@@ -115,32 +139,7 @@ class FlatteningDistorter(langVisitor):
         return []
 
     def visitWhileLoop(self, ctx: langParser.WhileLoopContext):
-        starting_pc = self.pc
-
-        self.pc = starting_pc + 1
-        body = ""
-        for com in ctx.com():
-            body += self.visit(com)
-
-        header = f"""
-        if(pc = {starting_pc}) {{
-            if ({ctx.bExp().getText()}) {{
-                pc := {starting_pc + 1};
-            }} else {{
-                pc := {self.pc + 1};
-            }};
-        }};
-        """
-
-        result = header + body
-        result += f"""
-        if (pc = {self.pc}) {{
-            pc := {starting_pc};                
-        }};\n"""
-
-        self.pc = self.pc + 1
-
-        return result
+        return self.__obf_com(ctx)
 
     def visitAddition(self, ctx: langParser.AdditionContext):
         return f"{self.visit(ctx.aExp(0))} + {self.visit(ctx.aExp(1))}"
