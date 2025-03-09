@@ -2,9 +2,10 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{listings}
-\title{Implemented Obfuscation Techniques}
-\author{Name Surname}
-\date{\today}
+
+\title{Parity and CFG Flattening\\Obfuscation Techniques}
+\author{Enrico Bragastini}
+\date{}
 
 \begin{document}
 
@@ -25,13 +26,13 @@
     \begin{itemize}
         \item Simplicity in creating the parser.
         \item Flexibility in implementing code transformations.
-        \item Ease of integration with Python for automation.
+        \item Ease of integration with Python.
     \end{itemize}
 \end{frame}
 
 \begin{frame}
     \frametitle{Grammar Highlights}
-    The following slides present key portions of the ANTLR4 grammar used for the obfuscation techniques.
+    The following slides present key portions of the ANTLR4 grammar used for the definition of a simple language.
 \end{frame}
 
 \begin{frame}[fragile]
@@ -69,13 +70,13 @@
     \scriptsize
     \begin{verbatim}
         aExp:
-            aExp '*' aExp			# Multiplication
-            | aExp '/' aExp			# Division
-            | aExp '+' aExp			# Addition
-            | aExp '-' aExp			# Subtraction
-            | LPAREN aExp RPAREN	# AParenthesis
-            | INT					# Integer
-            | ID					# ArithmeticVariable;
+            aExp '*' aExp           # Multiplication
+            | aExp '/' aExp         # Division
+            | aExp '+' aExp         # Addition
+            | aExp '-' aExp         # Subtraction
+            | LPAREN aExp RPAREN    # AParenthesis
+            | INT                   # Integer
+            | ID                    # ArithmeticVariable;
     \end{verbatim}
 \end{frame}
 
@@ -390,7 +391,7 @@ def visitIfElseIfTail(self, ctx: langParser.IfElseIfTailContext):
     }]
     branches.extend(self.visit(ctx.elseTail()))
     return branches
-    
+
 
 def visitIfElseTailEmpty(self, ctx: langParser.IfElseTailEmptyContext):
     return []
