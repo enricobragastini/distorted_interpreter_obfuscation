@@ -1,7 +1,7 @@
 import argparse
 from antlr4 import *
-from langLexer import langLexer
-from langParser import langParser
+from lang.langLexer import langLexer
+from lang.langParser import langParser
 from Interpreter import Interpreter
 from ParityDistorter import ParityDistorter
 from FlatteningDistorter import FlatteningDistorter

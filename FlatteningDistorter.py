@@ -1,7 +1,7 @@
 from antlr4 import *
-from langLexer import langLexer
-from langParser import langParser
-from langVisitor import langVisitor
+from lang.langLexer import langLexer
+from lang.langParser import langParser
+from lang.langVisitor import langVisitor
 
 
 class FlatteningDistorter(langVisitor):
