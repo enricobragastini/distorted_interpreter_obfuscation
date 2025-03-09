@@ -27,19 +27,19 @@ class FlatteningDistorter(langVisitor):
             for com in ctx.com():
                 body += self.visit(com)
             header = f"""
-                    if(pc = {starting_pc}) {{
-                        if ({ctx.bExp().getText()}) {{
-                            pc := {starting_pc + 1};
-                        }} else {{
-                            pc := {self.pc + 1 if exit_pc is None else exit_pc};
-                        }};
-                    }};
+        if(pc = {starting_pc}) {{
+            if ({ctx.bExp().getText()}) {{
+                pc := {starting_pc + 1};
+            }} else {{
+                pc := {self.pc + 1 if exit_pc is None else exit_pc};
+            }};
+        }};
                     """
             result = header + body
             result += f"""
-                    if (pc = {self.pc}) {{
-                        pc := {starting_pc};                
-                    }};\n"""
+        if (pc = {self.pc}) {{
+            pc := {starting_pc};                
+        }};\n"""
             self.pc = self.pc + 1
             return result
         return ""

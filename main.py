@@ -1,58 +1,69 @@
+import argparse
 from antlr4 import *
 from langLexer import langLexer
 from langParser import langParser
-from langVisitor import langVisitor
 from Interpreter import Interpreter
-# from ParityDistorter import ParityDistorter
+from ParityDistorter import ParityDistorter
 from FlatteningDistorter import FlatteningDistorter
 
 
-def interpreter_file(file_name="test.txt"):
-    input_stream = FileStream(file_name)
-    lexer = langLexer(input_stream)
-    token_stream = CommonTokenStream(lexer)
-    parser = langParser(token_stream)
-    tree = parser.prog()
-
-    interpreter = Interpreter()
-    interpreter.visit(tree)
-
-    print("Memoria:", interpreter.memory)
-
-
-def interpreter_string(code):
+def tree(code):
     input_stream = InputStream(code)
     lexer = langLexer(input_stream)
     token_stream = CommonTokenStream(lexer)
     parser = langParser(token_stream)
-    tree = parser.prog()
+    return parser.prog()
 
+
+def interpreter_string(code):
     interpreter = Interpreter()
-    interpreter.visit(tree)
+    interpreter.visit(tree(code))
 
     print("\nMemoria:", interpreter.memory)
 
 
-def main_distorter(code):
-    input_stream = InputStream(code)
-    lexer = langLexer(input_stream)
-    token_stream = CommonTokenStream(lexer)
-    parser = langParser(token_stream)
-    tree = parser.prog()
-
+def cff_distorter(code):
     distorter = FlatteningDistorter()
-    return distorter.visit(tree)
+    return distorter.visit(tree(code))
+
+
+def parity_distorter(code):
+    distorter = ParityDistorter()
+    return distorter.visit(tree(code))
 
 
 if __name__ == "__main__":
-    with open("test.txt", "r") as file:
+    parser = argparse.ArgumentParser(description="Script per offuscamento e/o interpretazione del codice.")
+
+    parser.add_argument("input_file", type=str, help="File di input contenente il codice sorgente.")
+    parser.add_argument("-o", "--output_file", type=str, help="File di output per il codice offuscato.")
+
+    parser.add_argument("-m", "--mode", type=str, choices=["obf", "int", "both"],
+                        required=True, help="Modalità: offusca, interpreta, o entrambe.")
+
+    parser.add_argument("-t", "--type", type=str, choices=["par", "cff"],
+                        help="Tipo di offuscazione (necessario se si seleziona una modalità con offuscamento).")
+
+    args = parser.parse_args()
+
+    with open(args.input_file, "r") as file:
         code = file.read()
-        print("Original code\n", code)
 
-        code = main_distorter(code)
-        print("\nObfuscated code\n", code)
+    if args.mode in ["obf", "both"]:
+        if not args.type:
+            parser.error("Il tipo di offuscamento è obbligatorio.")
 
-        with open("test1.txt", "w") as file:
-            file.write(code)
+        if args.type == "par":
+            code = parity_distorter(code)
+        elif args.type == "cff":
+            code = cff_distorter(code)
 
+        if args.output_file:
+            with open(args.output_file, "w") as file:
+                file.write(code)
+            print(f"Codice offuscato scritto nel file {args.output_file}")
+        else:
+            print("\nCodice offuscato: \n", code)
+
+    if args.mode in ["int", "both"]:
         interpreter_string(code)

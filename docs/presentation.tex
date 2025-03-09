@@ -1,0 +1,400 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{listings}
+\title{Implemented Obfuscation Techniques}
+\author{Name Surname}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}
+    \frametitle{Introduction}
+    The project is based on the implementation of two code obfuscation techniques, inspired by the paper \textit{Property-driven Code Obfuscations}.
+
+    I implemented the \textbf{Parity Distorter} and the \textbf{Flattening Distorter} using Python and ANTLR4.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Motivation of Choices}
+    ANTLR4 was preferred for:
+    \begin{itemize}
+        \item Simplicity in creating the parser.
+        \item Flexibility in implementing code transformations.
+        \item Ease of integration with Python for automation.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Grammar Highlights}
+    The following slides present key portions of the ANTLR4 grammar used for the obfuscation techniques.
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Commands Rule}
+    \scriptsize
+    \begin{verbatim}
+    prog: LBRACE com* RBRACE EOF;
+
+    com:
+        ID ASSIGN exp SEMICOLON	            # Assignment
+        | SKIP_CMD SEMICOLON                # Skip
+        | IF LPAREN bExp RPAREN LBRACE 
+        com* RBRACE elseTail SEMICOLON          # If
+        | WHILE LPAREN bExp RPAREN LBRACE 
+        com* RBRACE SEMICOLON                   # WhileLoop;
+    
+    elseTail:
+        ELSE LBRACE com* RBRACE             # IfElseTail
+        | ELSE IF LPAREN bExp RPAREN 
+        LBRACE com* RBRACE elseTail         # IfElseIfTail
+        |                                   # IfElseTailEmpty;
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Expressions Rule}
+    \scriptsize
+    \begin{verbatim}
+        exp: aExp | bExp;
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Arithmetic Expressions Rule}
+    \scriptsize
+    \begin{verbatim}
+        aExp:
+            aExp '*' aExp			# Multiplication
+            | aExp '/' aExp			# Division
+            | aExp '+' aExp			# Addition
+            | aExp '-' aExp			# Subtraction
+            | LPAREN aExp RPAREN	# AParenthesis
+            | INT					# Integer
+            | ID					# ArithmeticVariable;
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Boolean Expressions Rule}
+    \scriptsize
+    \begin{verbatim}        
+        bExp:
+            | ID bExp_tail
+            | TRUE bExp_tail
+            | FALSE bExp_tail
+            | aExp bExp_tail
+            | LPAREN bExp RPAREN bExp_tail
+            ;
+
+        bExp_tail:
+            EQ exp bExp_tail
+            | NEQ exp bExp_tail
+            | GT exp bExp_tail
+            | LT exp bExp_tail
+            | AND exp bExp_tail
+            |
+            ;
+    \end{verbatim}
+\end{frame}
+
+
+\begin{frame}\frametitle{Interpreter}
+    First, the ANTLR4 grammar was used to create an interpreter for the language. The interpreter was then used to test the correctness of the grammar and the language constructs.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Parity Distorter}
+    \scriptsize
+    The \textbf{Parity Distorter} aims at obfuscating the \textit{parity abstraction} on numerical values.
+    \[
+        \begin{array}{rcl}
+            \mathbf{f_{\vdash}(x)}            & \overset{\text{def}}{=} & 2 * x                                              \\[1em]
+            \mathbf{f_c(c)}                   & \overset{\text{def}}{=} &
+            \begin{cases}
+                2 * \mathbf{f_{ex}(a)} & \text{if } c = x := a               \\[0.5em]
+                \text{\textbf{skip}}   & \text{if } c = \text{\textbf{skip}}
+            \end{cases}                     \\[1em]
+
+            \mathbf{f_{ex}(x)}                & \overset{\text{def}}{=} & x / 2                                              \\[1em]
+
+            \mathbf{f_{ex}(e \text{ bop } e)} & \overset{\text{def}}{=} & \mathbf{f_{ex}(e)} \text{ bop } \mathbf{f_{ex}(e)}
+        \end{array}
+        \quad\quad
+        \begin{array}{rcl}
+            \mathbf{f_{\dashv}(x)}  & \overset{\text{def}}{=} & x / 2                   \\[1em]
+
+            \mathbf{f_b(b)}         & \overset{\text{def}}{=} & \mathbf{f_{ex}(b)}      \\[1em]
+
+            \mathbf{f_{ex}(n)}      & \overset{\text{def}}{=} & n                       \\[1em]
+
+            \mathbf{f_{ex}(\neg b)} & \overset{\text{def}}{=} & \neg \mathbf{f_{ex}(b)}
+        \end{array}
+    \]
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Parity Distorter: Class Definition}
+    \scriptsize
+    \begin{verbatim}
+class ParityDistorter(langVisitor):
+    def __init__(self):
+        self.vars = set()
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Parity Distorter: Main Program}
+    \scriptsize
+    \begin{verbatim}
+def visitProg(self, ctx: langParser.ProgContext):
+    result = "{\n"
+    for com in ctx.com():
+        result += self.visit(com)
+    for var in self.vars:
+        result += f"{var} := {self.__obf_var(var)};\n"
+    return result + "}"
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Parity Distorter: Assignments}
+    \scriptsize
+    \begin{verbatim}
+def __obf_com(self, ctx):
+    if isinstance(ctx, langParser.AssignmentContext):
+        return f"{ctx.ID().getText()} := 2 * ({self.visit(ctx.exp())});\n"
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Parity Distorter: Skip}
+    \scriptsize
+    \begin{verbatim}
+    elif isinstance(ctx, langParser.SkipContext):
+        return f"skip; "
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Parity Distorter: While Loop}
+    \scriptsize
+    \begin{verbatim}
+elif isinstance(ctx, langParser.WhileLoopContext):
+    result = f"while ({self.visit(ctx.bExp())}) {{\n"
+    for com in ctx.com():
+        result += self.visit(com)
+    return result + "};\n"
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Parity Distorter: Variables}
+    \scriptsize
+    \begin{verbatim}
+def __obf_var(self, varName: str):
+    self.vars.add(varName)
+    return f"({varName} / 2)"
+    \end{verbatim}
+\end{frame}
+
+
+\begin{frame}
+    \frametitle{Flattening Distorter}
+    The \textbf{Flattening Distorter} aims at obfuscating the \textit{Control Flow Graph}.
+    The flattening is made by making the \textit{program counter (pc)} dynamic.
+
+    The idea is to introduce a new variable \textbf{pc} that will be used to determine the next block of code to execute.
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \frametitle{Flattening Distorter: Class Definition}
+    \scriptsize
+    \begin{verbatim}
+
+class FlatteningDistorter(langVisitor):
+    def __init__(self):
+        self.vars = set()
+        self.pc = 0
+
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Flattening Distorter: Main Program}
+    \scriptsize
+    \begin{verbatim}
+def visitProg(self, ctx: langParser.ProgContext):
+    self.pc = 1
+    result = "{\n\tpc := 1;\n\twhile (pc != 0) {"
+    for com in ctx.com():
+        result += self.visit(com)
+    result += f"""
+    if(pc = {self.pc}) {{ 
+        pc := 0; 
+    }};\n\n"""  # End of program
+    return result + "\t};\n}"
+    \end{verbatim}
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \frametitle{Flattening Distorter: Assignments}
+    \scriptsize
+    \begin{verbatim}
+def __obf_com(self, ctx, exit_pc=None):
+    if isinstance(ctx, langParser.AssignmentContext):
+        result = f"""
+    if (pc = {self.pc}) {{
+        {ctx.ID().getText()} := {self.visit(ctx.exp())};
+        pc := {self.pc + 1 if exit_pc is None else exit_pc};
+    }};\n"""
+        self.pc += 1
+        return result
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Flattening Distorter: Skip}
+    \scriptsize
+    \begin{verbatim}
+elif isinstance(ctx, langParser.SkipContext):
+    return "skip; "
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Flattening Distorter: While Loop}
+    \scriptsize
+    \begin{verbatim}
+elif isinstance(ctx, langParser.WhileLoopContext):
+    starting_pc = self.pc
+    self.pc = starting_pc + 1
+    body = ""
+    for com in ctx.com():
+        body += self.visit(com)
+    header = f"""
+if(pc = {starting_pc}) {{
+    if ({ctx.bExp().getText()}) {{
+        pc := {starting_pc + 1};
+    }} else {{
+        pc := {self.pc + 1 if exit_pc is None else exit_pc};
+    }};
+}};
+            """
+    result = header + body
+    result += f"""
+if (pc = {self.pc}) {{
+    pc := {starting_pc};                
+}};\n"""
+    self.pc = self.pc + 1
+    return result
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Flattening Distorter: If Statement}
+    \scriptsize
+    \begin{verbatim}
+def visitIf(self, ctx: langParser.IfContext):
+    branches = [{
+        "bExp": self.visit(ctx.bExp()),
+        "ctx": ctx,
+        "coms": ctx.com()
+    }]
+    branches.extend(self.visit(ctx.elseTail()))
+
+    start_pc = self.pc                      # start: current pc
+    exit_pc = self.pc + len(branches)       # exit node pc
+
+    self.pc = exit_pc + 1                   # body program counter
+
+    body = ""
+    branches_pc = []
+    for i, b in enumerate(branches):
+        coms = b["coms"]
+        branches_pc.append(self.pc)
+        for j, c in enumerate(coms):
+            pc = exit_pc if j == (len(coms) - 1) else None
+            body += self.__obf_com(c, exit_pc=pc)
+
+    last_pc = self.pc
+
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Flattening Distorter: If Statement}
+    \scriptsize
+    \begin{verbatim}
+    self.pc = start_pc                      # header program counter
+    header = ""
+    for i in range(len(branches_pc)):
+        if not isinstance(branches[i]["ctx"], langParser.IfElseTailContext):
+            header += f"""
+                if (pc = {self.pc}) {{
+                    if({branches[i]["bExp"]}) {{
+                        pc := {branches_pc[i]};
+                    }} else {{
+                        pc := {self.pc + 1};
+                    }};
+                }};
+            """
+        else:
+            header += f"""
+                if (pc = {self.pc}) {{
+                    pc := {branches_pc[i]};
+                }};
+            """
+        self.pc += 1
+
+    self.pc = last_pc
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Flattening Distorter: If Statement}
+    \scriptsize
+    \begin{verbatim}
+    exit_node = f"""
+        if(pc = {exit_pc}) {{
+            pc := {self.pc};
+        }};
+    """
+    return header + exit_node + body
+    \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Flattening Distorter: If Statement}
+    \scriptsize
+    \begin{verbatim}
+def visitIfElseTail(self, ctx: langParser.IfElseTailContext):
+    return [{
+        "bExp": None,
+        "ctx": ctx,
+        "coms": ctx.com()
+    }]
+
+
+def visitIfElseIfTail(self, ctx: langParser.IfElseIfTailContext):
+    branches = [{
+        "bExp": self.visit(ctx.bExp()),
+        "ctx": ctx,
+        "coms": ctx.com()
+    }]
+    branches.extend(self.visit(ctx.elseTail()))
+    return branches
+    
+
+def visitIfElseTailEmpty(self, ctx: langParser.IfElseTailEmptyContext):
+    return []
+    \end{verbatim}
+\end{frame}
+
+\end{document}

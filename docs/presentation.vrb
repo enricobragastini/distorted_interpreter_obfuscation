@@ -1,0 +1,24 @@
+\frametitle{Flattening Distorter: If Statement}
+    \scriptsize
+    \begin{verbatim}
+def visitIfElseTail(self, ctx: langParser.IfElseTailContext):
+    return [{
+        "bExp": None,
+        "ctx": ctx,
+        "coms": ctx.com()
+    }]
+
+
+def visitIfElseIfTail(self, ctx: langParser.IfElseIfTailContext):
+    branches = [{
+        "bExp": self.visit(ctx.bExp()),
+        "ctx": ctx,
+        "coms": ctx.com()
+    }]
+    branches.extend(self.visit(ctx.elseTail()))
+    return branches
+
+
+def visitIfElseTailEmpty(self, ctx: langParser.IfElseTailEmptyContext):
+    return []
+    \end{verbatim}
