@@ -72,7 +72,7 @@ class ParityDistorter(langVisitor):
         return result
 
     def visitIfElseIfTail(self, ctx: langParser.IfElseIfTailContext):
-        result = f" if else({self.visit(ctx.bExp())}) {{\n"
+        result = f" else if({self.visit(ctx.bExp())}) {{\n"
         self.increase_indentation()
         for com in ctx.com():
             result += self.visit(com)

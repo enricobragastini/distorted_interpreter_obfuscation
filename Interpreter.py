@@ -119,7 +119,5 @@ class Interpreter(langVisitor):
         elif node.getText().isdigit():
             return int(node.getText())
         else:
-            if node.getText() == "c":
-                print(self.memory[node.getText()])
             # ID
             return self.memory[node.getText()]

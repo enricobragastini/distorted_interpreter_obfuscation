@@ -10,7 +10,7 @@ class FlatteningDistorter(langVisitor):
         self.pc = 0
 
     def __obf_com(self, ctx, exit_pc=None):
-        if isinstance(ctx, langParser.AssignmentContext):
+        if isinstance(ctx, langParser.AssignmentContext):               # Assignment
             result = f"""
         if (pc = {self.pc}) {{
             {ctx.ID().getText()} := {self.visit(ctx.exp())};
@@ -18,14 +18,16 @@ class FlatteningDistorter(langVisitor):
         }};\n"""
             self.pc += 1
             return result
-        elif isinstance(ctx, langParser.SkipContext):
+        elif isinstance(ctx, langParser.SkipContext):                   # Skip
             return "skip; "
-        elif isinstance(ctx, langParser.WhileLoopContext):
+        elif isinstance(ctx, langParser.WhileLoopContext):              # While loop
             starting_pc = self.pc
             self.pc = starting_pc + 1
+
             body = ""
             for com in ctx.com():
                 body += self.visit(com)
+
             header = f"""
         if(pc = {starting_pc}) {{
             if ({ctx.bExp().getText()}) {{
@@ -66,7 +68,7 @@ class FlatteningDistorter(langVisitor):
         return self.__obf_com(ctx)
 
     def visitIf(self, ctx: langParser.IfContext):
-        branches = [{
+        branches = [{                           # Array with all the branches of the if statement
             "bExp": self.visit(ctx.bExp()),
             "ctx": ctx,
             "coms": ctx.com()
