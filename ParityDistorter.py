@@ -21,6 +21,7 @@ class ParityDistorter(langVisitor):
 
     def __obf_com(self, ctx):
         if isinstance(ctx, langParser.AssignmentContext):
+            self.vars.add(ctx.ID().getText())
             return f"{self.get_indent()}{ctx.ID().getText()} := 2 * ({self.visit(ctx.exp())});\n"
         elif isinstance(ctx, langParser.SkipContext):
             return f"{self.get_indent()}skip; "
@@ -77,7 +78,7 @@ class ParityDistorter(langVisitor):
         for com in ctx.com():
             result += self.visit(com)
         self.decrease_indentation()
-        result += self.get_indent() + "}"
+        result += self.get_indent() + "}" + self.visit(ctx.elseTail())
         return result
 
     def visitIfElseTailEmpty(self, ctx: langParser.IfElseTailEmptyContext):
